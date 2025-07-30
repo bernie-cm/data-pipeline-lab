@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  source_db:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: source_data
+      POSTGRES_USER: dataeng
+      POSTGRES_PASSWORD: dataeng123
+    ports:
+      - "5432:5432"
+
+  target_db:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: warehouse
+      POSTGRES_USER: dataeng
+      POSTGRES_PASSWORD: dataeng123
+    ports:
+      - "5432:5432"
