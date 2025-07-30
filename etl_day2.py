@@ -93,6 +93,7 @@ def create_table_and_load(df, conn_params):
         logger.info("Table created/verified")
 
         # Prepare data for bulk insert
+        # PostgreSQL expects data in tupe format for execute_values
         records = [tuple(x) for x in df.to_numpy()]
         columns = df.columns.tolist()
 
