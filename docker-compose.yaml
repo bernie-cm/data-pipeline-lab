@@ -16,4 +16,4 @@ services:
       POSTGRES_USER: dataeng
       POSTGRES_PASSWORD: dataeng123
     ports:
-      - "5432:5432"
+      - "5433:5432"
