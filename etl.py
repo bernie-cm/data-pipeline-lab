@@ -15,4 +15,9 @@ print(df_sample.info())
 print(df_sample.head())
 
 # Final checkpoint and save state for further analysis"
-df_sample.to_csv()
+df_sample.to_csv("extracted-data.csv")
+print("First step done. Extracted data saved to extracted-data.csv")
+
+# Quick validation
+print(f"Columns: {df_sample.columns.tolist()}")
+print(f"Shape: {df_sample.shape}")
