@@ -64,6 +64,12 @@ df_transformed = transform_data(df)
 def create_table_and_load(df, conn_params):
     conn = None
     try:
+        # Convert numpy datetime64 to Python datetime objects
+        datetime_columns = ["pickup_datetime", "dropoff_datetime", "load_timestamp"]
+        for col in datetime_columns:
+            if col in df.columns:
+                df[col] = pd.to_datetime(df[col]).dt.to_pydatetime()
+
         # Connect to warehouse DB running on port 5433
         conn = psycopg2.connect(**conn_params)
         cur = conn.cursor()
@@ -87,14 +93,13 @@ def create_table_and_load(df, conn_params):
         logger.info("Table created/verified")
 
         # Prepare data for bulk insert
-        records = df.to_records(index=False)
+        records = [tuple(x) for x in df.to_numpy()]
         columns = df.columns.tolist()
 
         # Bulk insert
         insert_query = f"""
         INSERT INTO taxi_trips ({','.join(columns)})
         VALUES %s
-        ON CONFLICT (id) DO NOTHING;
         """
 
         execute_values(cur, insert_query, records)
@@ -102,7 +107,7 @@ def create_table_and_load(df, conn_params):
 
         # Verify load operation
         cur.execute("SELECT COUNT(*) FROM taxi_trips")
-        count = cur.fetchnone()[0]
+        count = cur.fetchone()[0]
         logger.info(f"Successfully loaded data. Table now has {count} records")
     
     except Exception as e:
