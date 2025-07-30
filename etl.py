@@ -13,3 +13,6 @@ df_sample = df.sample(n=10000, random_state=42)
 # Do some basic EDA
 print(df_sample.info())
 print(df_sample.head())
+
+# Final checkpoint and save state for further analysis"
+df_sample.to_csv()
