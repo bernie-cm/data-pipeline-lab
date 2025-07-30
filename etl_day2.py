@@ -47,6 +47,7 @@ def transform_data(df):
         "trip_distance": "trip_distance",
         "fare_amount": "fare_amount",
         "tip_amount": "tip_amount",
+        "total_amount": "total_amount",
         "trip_duration_minutes": "trip_duration_minutes",
         "load_timestamp": "load_timestamp"
     }
@@ -58,6 +59,71 @@ def transform_data(df):
     return df_transformed
 
 df_transformed = transform_data(df)
+
+# Database connection and load
+def create_table_and_load(df, conn_params):
+    conn = None
+    try:
+        # Connect to warehouse DB running on port 5433
+        conn = psycopg2.connect(**conn_params)
+        cur = conn.cursor()
+
+        # Create table if it doesn't exist
+        create_table_sql = """
+        CREATE TABLE IF NOT EXISTS taxi_trips (
+            id SERIAL PRIMARY KEY,
+            pickup_datetime TIMESTAMP,
+            dropoff_datetime TIMESTAMP,
+            passenger_count INTEGER,
+            trip_distance DECIMAL(10,2),
+            fare_amount DECIMAL(10,2),
+            tip_amount DECIMAL(10,2),
+            total_amount DECIMAL(10,2),
+            trip_duration_minutes DECIMAL(10,2),
+            load_timestamp TIMESTAMP
+        );
+        """
+        cur.execute(create_table_sql)
+        logger.info("Table created/verified")
+
+        # Prepare data for bulk insert
+        records = df.to_records(index=False)
+        columns = df.columns.tolist()
+
+        # Bulk insert
+        insert_query = f"""
+        INSERT INTO taxi_trips ({','.join(columns)})
+        VALUES %s
+        ON CONFLICT (id) DO NOTHING;
+        """
+
+        execute_values(cur, insert_query, records)
+        conn.commit()
+
+        # Verify load operation
+        cur.execute("SELECT COUNT(*) FROM taxi_trips")
+        count = cur.fetchnone()[0]
+        logger.info(f"Successfully loaded data. Table now has {count} records")
+    
+    except Exception as e:
+        logger.error(f"Error during load: {str(e)}")
+        if conn:
+            conn.rollback()
+        raise
+    finally:
+        if conn:
+            conn.close()
+
+# Load to warehouse
+warehouse_params = {
+    "host": "localhost",
+    "port": 5433,
+    "database": "warehouse",
+    "user": "dataeng",
+    "password": "dataeng123"
+}
+create_table_and_load(df_transformed, warehouse_params)
+
 
 # Basic pipeline stats
 def generate_pipeline_stats(df_original, df_transformed):
