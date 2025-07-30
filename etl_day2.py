@@ -58,3 +58,31 @@ def transform_data(df):
     return df_transformed
 
 df_transformed = transform_data(df)
+
+# Basic pipeline stats
+def generate_pipeline_stats(df_original, df_transformed):
+    stats = {
+        "original_records": len(df_original),
+        "transformed_records": len(df_transformed),
+        "records_dropped": len(df_original) - len(df_transformed),
+        "drop_percentage": ((len(df_original)) - len(df_transformed)) / len(df_original) * 100,
+        "avg_trip_duration": df_transformed["trip_duration_minutes"].mean(),
+        "total_revenue": df_transformed["total_amount"].sum()
+    }
+
+    logger.info("Pipeline statistics:")
+    for key, value in stats.items():
+        logger.info(f"  {key}: {value:.2f}")
+
+    return stats
+
+stats = generate_pipeline_stats(df, df_transformed)
+
+# Save pipeline run metadata
+run_metadata = {
+    "run_date": datetime.now().isoformat(),
+    "status": "success",
+    "records_processed": stats["transformed_records"]
+}
+
+logger.info("Pipeline completed successfully.")
