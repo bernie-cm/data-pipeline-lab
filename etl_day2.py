@@ -24,7 +24,7 @@ def transform_data(df):
     # First remove rows with null coordinates or zero passengers
     if "PULocationID" in df.columns and "DOLocationID" in df.columns:
         df = df.dropna(subset=["PULocationID", "DOLocationID"])
-        df = df[df["PULocationID"] > 0] & df[df["DOLocationID"] > 0]
+        df = df[(df["PULocationID"] > 0) & (df["DOLocationID"] > 0)]
     # Passengers more than 0    
     df = df[df["passenger_count"] > 0]
 
