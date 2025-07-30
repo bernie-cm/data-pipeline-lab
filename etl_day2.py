@@ -18,9 +18,14 @@ logger.info(f"Loaded {len(df)} records")
 def transform_data(df):
     logger.info("Starting transformations...")
 
+    # Check what columns we have
+    logger.info(f"Available columns: {df.columns.tolist()}")
+
     # First remove rows with null coordinates or zero passengers
-    df = df.dropna(subset=["pickup_longitude", "pickup_latitude", "dropoff_longitude", "dropoff_latitude"])
-    
+    if "PULocationID" in df.columns and "DOLocationID" in df.columns:
+        df = df.dropna(subset=["PULocationID", "DOLocationID"])
+        df = df[df["PULocationID"] > 0] & df[df["DOLocationID"] > 0]
+    # Passengers more than 0    
     df = df[df["passenger_count"] > 0]
 
     # Second calculate trip duration in minutes
